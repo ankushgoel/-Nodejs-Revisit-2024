@@ -1,14 +1,20 @@
 import http from 'http';
+import fs from 'fs/promises';
+import url from 'url';
+import path  from 'path';
 
 // Can use this dotenv npm package to store env variables configuration
 import 'dotenv/config'
-import { error } from 'console';
 // console.log(process.env.PORT)
 
 // Also can use the --require (-r) command line option to preload dotenv. 
 // By doing this, we don't need to require and load dotenv in the application code.
 
 const PORT = process.env.PORT || 8000;
+
+const __filename = url.fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory
+
 // const server = http.createServer((req, res) => {
 //     // res.setHeader('Content-Type', 'text/plain');
 //     // res.write('Hello World!');
@@ -29,20 +35,24 @@ const PORT = process.env.PORT || 8000;
 // });
 
 // Routing
-const server = http.createServer((req, res) => {
+const server = http.createServer( async (req, res) => {
     try {
         // Check if GET request
         if(req.method === 'GET') {
-            if(req.url == '/') {
-                res.writeHead(200, {'Content-Type': 'text/html'})
-                res.end('<h1>Homepage!</h1>')
+            let filePath;
+            res.setHeader('Content-Type', 'text/html');
+            res.statusCode = 200;
+
+            if(req.url == '/' || req.url == '/index') {
+                filePath = path.join(__dirname, 'public', 'index.html')
             } else if(req.url == '/about') {
-                res.writeHead(200, {'Content-Type': 'text/html'})
-                res.end('<h1>About!</h1>')
+                filePath = path.join(__dirname, 'public', 'about.html')
             } else {
-                res.writeHead(404, {'Content-Type': 'text/html'})
-                res.end('<h1>Not Found!</h1>')
+                res.statusCode = 404;
+                return res.end('<h1>Not Found!</h1>')
             }
+            const data = await fs.readFile(filePath);
+            res.end(data);
         } else {
             throw new Error('Method not allowed!')
         }
