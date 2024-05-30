@@ -1,0 +1,2 @@
+Writing in this file using node fs module
+Appending in this file using node fs module
